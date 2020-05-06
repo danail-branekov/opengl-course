@@ -63,6 +63,7 @@ int AddShader(GLuint theProgram, const char *shaderCode, GLenum shaderType) {
     }
 
     glAttachShader(theProgram, theShader);
+    return 0;
 }
 
 int CompileShaders() {
