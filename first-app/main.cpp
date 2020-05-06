@@ -11,14 +11,19 @@ void error_callback(int error, const char *description) {
     std::cerr << "Error:" << description << std::endl;
 }
 
-GLuint VAO, VBO, shader;
+GLuint VAO, VBO, shader, uniformXMove;
 
-static const char *vertexShader = "\n#version 330\n\nlayout (location = 0) in vec3 pos;\n\nvoid main() {\n    gl_Position = vec4(0.7 * pos.x, 0.7 * pos.y, 0.7 * pos.z, 1.0);\n}";
+bool moveLeft = true;
+float triOffset = 0;
+float triMaxOffset = 0.6;
+float triIncrement = 0.005;
+
+static const char *vertexShader = "\n#version 330\n\nuniform float xMove;\n\nlayout (location = 0) in vec3 pos;\n\nvoid main() {\n    gl_Position = vec4(0.7 * pos.x + xMove, 0.7 * pos.y, 0.7 * pos.z, 1.0);\n}";
 static const char *fragmentShader = "#version 330\n\nout vec4 colour;\n\nvoid main() {\n    colour = vec4(1.0, 0.0, 0.0, 1.0);\n}   ";
 
 void CreateTriangle() {
     GLfloat vertices[] = {
-            -1.0, -1.0, 0.0,
+            -1.0, -1.0, -0.0,
             1.0, -1.0, 0.0,
             0.0, 1.0, 0.0
     };
@@ -89,6 +94,8 @@ int CompileShaders() {
         return 1;
     }
 
+    uniformXMove = glGetUniformLocation(shader, "xMove");
+
     return 0;
 }
 
@@ -139,10 +146,16 @@ int main() {
     while (!glfwWindowShouldClose(mainWindow)) {
         glfwPollEvents();
 
+        triOffset +=triIncrement*float(moveLeft ? -1 : 1);
+        if(std::abs(triOffset) >= (triMaxOffset)) {
+            moveLeft = !moveLeft;
+        }
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader);
+        glUniform1f(uniformXMove, triOffset);
         glBindVertexArray(VAO);
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
